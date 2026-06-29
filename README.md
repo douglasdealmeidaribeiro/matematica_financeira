@@ -2,6 +2,12 @@
 
 Portal educacional, estático e responsivo para apoiar aulas de Matemática Financeira. O projeto reúne explicações conceituais, fórmulas, exemplos resolvidos, exercícios e simuladores executados inteiramente no navegador.
 
+## Autoria e contato
+
+Projeto desenvolvido pelo **Professor Douglas de Almeida Ribeiro**.
+
+Contato: [douglasdealmeidaribeiro@gmail.com](mailto:douglasdealmeidaribeiro@gmail.com)
+
 ## Módulos
 
 1. Juros Simples

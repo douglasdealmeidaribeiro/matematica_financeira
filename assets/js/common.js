@@ -28,6 +28,7 @@
           <nav class="main-nav" id="main-nav" aria-label="Navegação principal">
             <a href="${url("index.html")}"${page === "home" ? ' aria-current="page"' : ""}>Início</a>
             <a href="${url("index.html#modulos")}">Trilha</a>
+            <a href="${url("index.html#sobre")}">Sobre</a>
             <div class="nav-dropdown">
               <button type="button" aria-expanded="false">Módulos ▾</button>
               <div class="dropdown-menu">${moduleLinks}</div>
@@ -62,8 +63,8 @@
       <footer class="site-footer">
         <div class="container footer-grid">
           <div><a class="brand" href="${url("index.html")}"><span class="brand-mark">ƒ</span><span style="color:white">Matemática Financeira</span></a>
-          <p>Conteúdo educacional para aprender, simular e decidir.</p></div>
-          <div><p>Projeto educacional · <span data-current-year></span></p><div class="footer-links"><a href="${url("index.html#modulos")}">Módulos</a><a href="${url("README.md")}">Sobre</a></div></div>
+          <p>Projeto desenvolvido pelo Professor Douglas de Almeida Ribeiro.</p></div>
+          <div><p>Projeto educacional · <span data-current-year></span></p><div class="footer-links"><a href="${url("index.html#modulos")}">Módulos</a><a href="${url("index.html#sobre")}">Sobre</a><a href="mailto:douglasdealmeidaribeiro@gmail.com">Contato</a></div><p><a class="footer-email" href="mailto:douglasdealmeidaribeiro@gmail.com">douglasdealmeidaribeiro@gmail.com</a></p></div>
         </div>
       </footer>`;
   }
