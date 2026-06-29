@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Calculadora HP 12C Online Grátis | Simulador RPN</title>
+  <meta name="description" content="Use a calculadora HP 12C online grátis para juros, financiamentos, NPV, IRR, amortização, datas e estatística. Simulador educacional com lógica RPN.">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <link rel="canonical" href="https://douglasdealmeidaribeiro.github.io/matematica_financeira/pages/hp12c.html">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:title" content="Calculadora HP 12C Online Grátis | Simulador RPN">
+  <meta property="og:description" content="Simulador educacional de calculadora financeira com lógica RPN, funções financeiras, fluxo de caixa, datas e estatística.">
+  <meta property="og:url" content="https://douglasdealmeidaribeiro.github.io/matematica_financeira/pages/hp12c.html">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Calculadora HP 12C Online Grátis">
+  <meta name="twitter:description" content="Simulador educacional de calculadora financeira com lógica RPN e funções financeiras.">
+  <link rel="stylesheet" href="../assets/css/styles.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Calculadora HP 12C Online Grátis",
+    "url": "https://douglasdealmeidaribeiro.github.io/matematica_financeira/pages/hp12c.html",
+    "description": "Simulador educacional de calculadora financeira com lógica RPN, funções financeiras, fluxo de caixa, datas, estatística e programação.",
+    "applicationCategory": "FinanceApplication",
+    "operatingSystem": "Qualquer sistema com navegador moderno",
+    "browserRequirements": "JavaScript habilitado",
+    "inLanguage": "pt-BR",
+    "isAccessibleForFree": true,
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "BRL"
+    },
+    "author": {
+      "@type": "Person",
+      "name": "Douglas de Almeida Ribeiro"
+    }
+  }
+  </script>
+  <script defer src="../assets/js/common.js"></script>
+  <script defer src="../assets/js/hp12c.js"></script>
+</head>
+<body data-root=".." data-page="hp12c"><a class="skip-link" href="#conteudo">Pular para o conteúdo</a><div id="site-header"></div><main id="conteudo">
+<header class="page-hero"><div class="container"><div class="breadcrumbs"><a href="../index.html">Início</a><span>›</span>Módulo 10</div><span class="eyebrow">Ferramenta financeira</span><h1>Calculadora HP 12C Online Grátis</h1><p>Use o simulador educacional para praticar lógica RPN, operações aritméticas e os cinco registradores financeiros diretamente no navegador.</p><div class="objective"><strong>Objetivo</strong><span>Usar a pilha RPN e resolver problemas com n, i, PV, PMT e FV.</span></div></div></header>
+<div class="section"><div class="container lesson-layout"><article class="lesson-content">
+<section id="conceito"><h2>Calculadora financeira e lógica RPN</h2><p>Uma calculadora financeira combina operações aritméticas com funções do valor do dinheiro no tempo, fluxo de caixa, títulos, datas, depreciação, estatística e programação. A HP 12C popularizou a <strong>Notação Polonesa Reversa (RPN)</strong>: primeiro entram os números, depois a operação.</p><p>Para calcular 8 + 5, digite <strong>8 ENTER 5 +</strong>. O ENTER empilha o primeiro valor; a operação usa os dois valores do topo.</p><div class="callout info"><span>ⓘ</span><div>Este é um <strong>simulador didático independente inspirado no arranjo clássico</strong>, não um produto oficial. As teclas principais, funções laranja e azul, memórias e programação por teclas são operacionais.</div></div></section>
+<section id="simulador"><h2>Calculadora</h2><div class="hp-calculator-scroll"><div class="hp-shell" data-hp12c>
+  <div class="hp-top-panel">
+    <div class="hp-brand"><span>HEWLETT · PACKARD <small>SIMULADOR EDUCACIONAL</small></span><span class="hp-logo">hp<br><b>12C</b></span></div>
+    <div class="hp-display-frame">
+      <div class="hp-display" role="status" aria-live="polite">
+        <div class="hp-annunciators"><span id="hpPrefix"></span><span id="hpMode">END</span><span id="hpMemory"></span></div>
+        <div id="hpDisplayValue">0.00</div>
+        <div class="hp-status" id="hpStatus"></div>
+      </div>
+    </div>
+    <div class="hp-registers" aria-label="Registradores financeiros"><div>n<strong data-register="n">0*</strong></div><div>i (%)<strong data-register="i">0*</strong></div><div>PV<strong data-register="PV">0*</strong></div><div>PMT<strong data-register="PMT">0*</strong></div><div>FV<strong data-register="FV">0*</strong></div></div>
+  </div>
+  <div class="hp-keyboard"><div class="hp-keys">
+    <button class="hp-key financial-key" data-key="n" type="button" aria-label="n; f AMORT; g doze vezes"><span class="key-top">AMORT</span><span class="key-main">n</span><span class="key-bottom">12×</span></button>
+    <button class="hp-key financial-key" data-key="i" type="button" aria-label="i; f juros simples; g dividido por doze"><span class="key-top">INT</span><span class="key-main">i</span><span class="key-bottom">12÷</span></button>
+    <button class="hp-key financial-key" data-key="PV" type="button" aria-label="PV; f NPV; g CF zero"><span class="key-top">NPV</span><span class="key-main">PV</span><span class="key-bottom">CF₀</span></button>
+    <button class="hp-key financial-key" data-key="PMT" type="button" aria-label="PMT; f arredondar; g CF j"><span class="key-top">RND</span><span class="key-main">PMT</span><span class="key-bottom">CFⱼ</span></button>
+    <button class="hp-key financial-key" data-key="FV" type="button" aria-label="FV; f IRR; g N j"><span class="key-top">IRR</span><span class="key-main">FV</span><span class="key-bottom">Nⱼ</span></button>
+    <button class="hp-key" data-key="CHS" type="button"><span class="key-main">CHS</span><span class="key-bottom">DATE</span></button>
+    <button class="hp-key" data-key="7" type="button"><span class="key-main">7</span><span class="key-bottom">BEG</span></button>
+    <button class="hp-key" data-key="8" type="button"><span class="key-main">8</span><span class="key-bottom">END</span></button>
+    <button class="hp-key" data-key="9" type="button"><span class="key-main">9</span><span class="key-bottom">MEM</span></button>
+    <button class="hp-key operator-key" data-key="/" type="button" aria-label="Dividir"><span class="key-main">÷</span></button>
+
+    <button class="hp-key" data-key="POW" type="button"><span class="key-top">PRICE</span><span class="key-main">yˣ</span><span class="key-bottom">√x</span></button>
+    <button class="hp-key" data-key="RECIP" type="button"><span class="key-main">1/x</span><span class="key-bottom">eˣ</span></button>
+    <button class="hp-key" data-key="PCT_TOTAL" type="button"><span class="key-main">%T</span><span class="key-bottom">LN</span></button>
+    <button class="hp-key" data-key="DELTA_PERCENT" type="button"><span class="key-main">Δ%</span><span class="key-bottom">FRAC</span></button>
+    <button class="hp-key" data-key="PERCENT" type="button"><span class="key-main">%</span><span class="key-bottom">INTG</span></button>
+    <button class="hp-key" data-key="EEX" type="button"><span class="key-main">EEX</span><span class="key-bottom">ΔDYS</span></button>
+    <button class="hp-key" data-key="4" type="button"><span class="key-main">4</span><span class="key-bottom">D.MY</span></button>
+    <button class="hp-key" data-key="5" type="button"><span class="key-main">5</span><span class="key-bottom">M.DY</span></button>
+    <button class="hp-key" data-key="6" type="button"><span class="key-main">6</span><span class="key-bottom">x̄w</span></button>
+    <button class="hp-key operator-key" data-key="*" type="button" aria-label="Multiplicar"><span class="key-main">×</span></button>
+
+    <button class="hp-key" data-key="RS" type="button"><span class="key-top">P/R</span><span class="key-main">R/S</span><span class="key-bottom">PSE</span></button>
+    <button class="hp-key" data-key="SST" type="button"><span class="key-top">CLEAR Σ</span><span class="key-main">SST</span><span class="key-bottom">BST</span></button>
+    <button class="hp-key" data-key="RDOWN" type="button"><span class="key-top">CLEAR PRGM</span><span class="key-main">R↓</span><span class="key-bottom">GTO</span></button>
+    <button class="hp-key" data-key="XSWAP" type="button"><span class="key-top">CLEAR FIN</span><span class="key-main">x↔y</span><span class="key-bottom">x≤y</span></button>
+    <button class="hp-key" data-key="CLX" type="button"><span class="key-top">CLEAR REG</span><span class="key-main">CLx</span><span class="key-bottom">x=0</span></button>
+    <button class="hp-key hp-enter" data-key="ENTER" type="button"><span class="key-top">PREFIX</span><span class="key-main">E<br>N<br>T<br>E<br>R</span><span class="key-bottom">LST x</span></button>
+    <button class="hp-key" data-key="1" type="button"><span class="key-main">1</span><span class="key-bottom">x̂,r</span></button>
+    <button class="hp-key" data-key="2" type="button"><span class="key-main">2</span><span class="key-bottom">ŷ,r</span></button>
+    <button class="hp-key" data-key="3" type="button"><span class="key-main">3</span><span class="key-bottom">n!</span></button>
+    <button class="hp-key operator-key" data-key="-" type="button" aria-label="Subtrair"><span class="key-main">−</span></button>
+
+    <button class="hp-key" data-key="ON" type="button"><span class="key-main">ON</span></button>
+    <button class="hp-key prefix-f" data-key="f" type="button"><span class="key-main">f</span></button>
+    <button class="hp-key prefix-g" data-key="g" type="button"><span class="key-main">g</span></button>
+    <button class="hp-key" data-key="STO" type="button"><span class="key-main">STO</span></button>
+    <button class="hp-key" data-key="RCL" type="button"><span class="key-main">RCL</span></button>
+    <button class="hp-key" data-key="0" type="button"><span class="key-main">0</span><span class="key-bottom">x̄</span></button>
+    <button class="hp-key" data-key="." type="button"><span class="key-main">.</span><span class="key-bottom">s</span></button>
+    <button class="hp-key" data-key="SIGMA" type="button"><span class="key-main">Σ+</span><span class="key-bottom">Σ−</span></button>
+    <button class="hp-key operator-key" data-key="+" type="button" aria-label="Somar"><span class="key-main">+</span></button>
+  </div><p class="hp-help">Laranja: pressione <strong>f</strong> antes da tecla. Azul: pressione <strong>g</strong>. Para STO/RCL, use R0–R9 ou ponto e dígito para R.0–R.9. Em estatística, registre cada par na ordem <strong>y ENTER x Σ+</strong>; use <strong>g 2</strong> para estimar ŷ a partir de x e <strong>g 1</strong> para estimar x̂ a partir de y.</p></div>
+</div></div></section>
+<section id="teclas"><h2>Como usar os registradores</h2><ul><li><strong>n:</strong> número de períodos.</li><li><strong>i:</strong> taxa percentual por período (digite 1, e não 0,01, para 1%).</li><li><strong>PV:</strong> valor presente; <strong>PMT:</strong> prestação; <strong>FV:</strong> valor futuro.</li></ul><p>Digite um número e pressione uma tecla financeira para armazená-lo. Depois de informar <strong>três variáveis compatíveis</strong>, pressione diretamente a tecla da incógnita — sem digitar outro valor — para calculá-la. Os registros de fluxo não informados são considerados iguais a zero e aparecem como <strong>0*</strong>. Use <strong>CHS</strong> para trocar o sinal.</p><div class="callout info"><span>f/g</span><div><strong>Funções completas:</strong> TVM, AMORT, INT, NPV, IRR, fluxo de caixa, títulos PRICE/YTM, depreciação SL/SOYD/DB, datas DATE/ΔDYS, estatística, regressão, 20 memórias com aritmética, formatos de exibição, BEGIN/END e programação por R/S, P/R, SST, BST, GTO e testes condicionais.</div></div></section>
+<section id="exemplos"><h2>Exemplos resolvidos</h2><div class="worked-example"><h3>Financiamento: descobrir a prestação</h3><p>Financiamento de R$ 20.000 em 24 meses a 1,5% a.m., sem saldo final:</p><div class="calculation">24 [n] · 1,5 [i] · 20.000 [PV] · [PMT]<br>FV não informado = 0 · Resultado ≈ −R$ 998,48</div><p>A prestação é negativa porque representa saída para quem recebeu o financiamento.</p></div><br><div class="worked-example"><h3>Investimento: descobrir o valor futuro</h3><p>Aplicação inicial de R$ 5.000 por 36 meses a 0,8% a.m., sem aportes:</p><div class="calculation">5.000 [CHS] [PV] · 36 [n] · 0,8 [i] · [FV]<br>PMT não informado = 0 · Resultado ≈ R$ 6.661,15</div></div></section>
+<section id="exercicios"><h2>Exercícios propostos</h2><div class="exercises"><div class="exercise"><p>Em RPN, calcule (120 + 30) ÷ 5.</p></div><div class="exercise"><p>Calcule o FV de R$ 10.000 por 18 meses a 1% a.m.</p></div><div class="exercise"><p>Encontre a taxa mensal de um investimento de R$ 2.000 que se torna R$ 3.000 em 24 meses.</p></div></div></section>
+<nav class="topic-nav"><a href="vpl.html">← Anterior: VPL</a><a class="home-link" href="../index.html">⌂ Voltar ao início</a><span></span></nav>
+</article><aside class="side-index"><strong>NESTE MÓDULO</strong><a href="#conceito">Lógica RPN</a><a href="#simulador">Calculadora</a><a href="#teclas">Registradores</a><a href="#exemplos">Exemplos</a><a href="#exercicios">Exercícios</a></aside></div></div></main><div id="site-footer"></div></body></html>
