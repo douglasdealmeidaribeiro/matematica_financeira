@@ -41,7 +41,7 @@
   };
   const refreshRegisters = () => {
     Object.entries(registerElements).forEach(([key, element]) => {
-      element.textContent = financial[key] === null ? "—" : formatDisplay(financial[key]).replace(/\.00$/, "");
+      element.textContent = financial[key] === null ? "0*" : formatDisplay(financial[key]).replace(/\.00$/, "");
     });
   };
   const error = (message) => {
@@ -247,12 +247,22 @@
     show(value);
   }
   function solveFinancial(key) {
-    const known = Object.entries(financial).filter(([name, value]) => name !== key && value !== null);
-    if (known.length < 4) {
+    const cashKeys = ["PV", "PMT", "FV"];
+    const informedCashFlows = cashKeys.filter((name) => name !== key && financial[name] !== null).length;
+    const hasRequiredValues = cashKeys.includes(key)
+      ? financial.n !== null && financial.i !== null && informedCashFlows >= 1
+      : key === "n"
+        ? financial.i !== null && informedCashFlows >= 2
+        : financial.n !== null && informedCashFlows >= 2;
+    if (!hasRequiredValues) {
       if (financial[key] !== null) return setX(financial[key], `${key} recuperado`);
-      return error(`Informe as outras quatro variáveis para calcular ${key}`);
+      return error(`Informe três variáveis compatíveis para calcular ${key}`);
     }
-    const { n, i, PV, PMT, FV } = financial;
+    const n = financial.n ?? 0;
+    const i = financial.i ?? 0;
+    const PV = financial.PV ?? 0;
+    const PMT = financial.PMT ?? 0;
+    const FV = financial.FV ?? 0;
     const rate = i === null ? null : i / 100;
     let answer;
     if (key === "FV") answer = -(PV * ((1 + rate) ** n) + PMT * annuityFactor(n, rate));
