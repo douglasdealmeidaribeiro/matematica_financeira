@@ -189,6 +189,16 @@ test("mantém resultados grandes em formato decimal", () => {
   assert.doesNotMatch(hp.display.textContent, /e[+-]?\d+/i);
 });
 
+test("RCL exibe resíduos financeiros pequenos no formato FIX, sem expoente", () => {
+  const hp = createCalculator();
+
+  hp.type("0.00000000000131");
+  hp.press("PV", "RCL", "PV");
+
+  assert.equal(hp.display.textContent, "0.00");
+  assert.doesNotMatch(hp.display.textContent, /e[+-]?\d+/i);
+});
+
 test("eleva a pilha automaticamente ao iniciar uma nova entrada", () => {
   const hp = createCalculator();
 
