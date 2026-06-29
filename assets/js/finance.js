@@ -41,6 +41,36 @@
     }
     return (low + high) / 2;
   }
+  function tirModificada(investimentoInicial, fluxos, taxaFinanciamento, taxaReinvestimento) {
+    if (!fluxos.length || taxaFinanciamento <= -1 || taxaReinvestimento <= -1) return null;
+    const cashFlows = [-Math.abs(investimentoInicial), ...fluxos];
+    const finalPeriod = fluxos.length;
+    let presentValueOutflows = 0;
+    let futureValueInflows = 0;
+    cashFlows.forEach((flow, period) => {
+      if (flow < 0) presentValueOutflows += flow / ((1 + taxaFinanciamento) ** period);
+      if (flow > 0) futureValueInflows += flow * ((1 + taxaReinvestimento) ** (finalPeriod - period));
+    });
+    if (presentValueOutflows >= 0 || futureValueInflows <= 0) return null;
+    const result = (futureValueInflows / Math.abs(presentValueOutflows)) ** (1 / finalPeriod) - 1;
+    return Number.isFinite(result) ? result : null;
+  }
+  function paybackSimples(investimentoInicial, fluxos) {
+    let cumulative = -Math.abs(investimentoInicial);
+    for (let index = 0; index < fluxos.length; index += 1) {
+      const previous = cumulative;
+      cumulative += fluxos[index];
+      if (previous < 0 && cumulative >= 0 && fluxos[index] > 0) {
+        return index + (Math.abs(previous) / fluxos[index]);
+      }
+    }
+    return null;
+  }
+  function paybackDescontado(investimentoInicial, taxa, fluxos) {
+    if (taxa <= -1) return null;
+    const discounted = fluxos.map((flow, index) => flow / ((1 + taxa) ** (index + 1)));
+    return paybackSimples(investimentoInicial, discounted);
+  }
   function summarize(table) {
     return {
       initialInstallment: table[0]?.installment || 0,
@@ -108,6 +138,7 @@
     round2, formatCurrencyBRL, formatPercentBR, parseNumberBR, jurosSimples, montanteSimples,
     montanteComposto, taxaEquivalente, taxaReal, valorPresenteSerieUniforme,
     valorFuturoSerieUniforme, valorPresenteSerieDiferida, descontoComercial, vpl, tir,
+    tirModificada, paybackSimples, paybackDescontado,
     parcelaUnica, jurosPeriodicos, sac, pricePostecipada, priceAntecipada
   };
 })(window);

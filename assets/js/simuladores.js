@@ -157,13 +157,33 @@
   }
 
   function netPresentValue() {
-    const initial = val("investimento"), rate = percent("taxa"), flows = Array.from(document.querySelectorAll("#vplFluxos .dynamic-row")).map((row) => F.parseNumberBR(row.querySelector("[data-value]").value));
-    requirePositive([initial]); if (!Number.isFinite(rate) || rate <= -1 || flows.some((flow) => !Number.isFinite(flow))) throw new Error("Informe a taxa e todos os fluxos.");
+    const initial = val("investimento"), rate = percent("taxa"), financeRate = percent("taxaFinanciamento"), reinvestmentRate = percent("taxaReinvestimento");
+    const entries = Array.from(document.querySelectorAll("#vplFluxos .dynamic-row")).map((row) => ({
+      period: F.parseNumberBR(row.querySelector("[data-period]").value),
+      value: F.parseNumberBR(row.querySelector("[data-value]").value)
+    }));
+    requirePositive([initial]);
+    if (![rate, financeRate, reinvestmentRate].every((item) => Number.isFinite(item) && item > -1)) throw new Error("Informe taxas válidas, maiores que −100%.");
+    if (entries.some((entry) => !Number.isInteger(entry.period) || entry.period < 1 || entry.period > 600 || !Number.isFinite(entry.value))) throw new Error("Use períodos inteiros entre 1 e 600 e preencha todos os fluxos.");
+    const maxPeriod = Math.max(...entries.map((entry) => entry.period));
+    const flows = Array.from({ length: maxPeriod }, () => 0);
+    entries.forEach((entry) => { flows[entry.period - 1] += entry.value; });
     const net = F.vpl(initial, rate, flows), irr = F.tir(initial, flows);
+    const modifiedIrr = F.tirModificada(initial, flows, financeRate, reinvestmentRate);
+    const simplePayback = F.paybackSimples(initial, flows);
+    const discountedPayback = F.paybackDescontado(initial, rate, flows);
     const pvs = flows.map((flow, index) => flow / ((1 + rate) ** (index + 1)));
+    let simpleCumulative = -initial, discountedCumulative = -initial;
+    const rows = [[0, money(-initial), money(-initial), money(-initial), money(-initial)]];
+    flows.forEach((flow, index) => {
+      simpleCumulative += flow;
+      discountedCumulative += pvs[index];
+      rows.push([index + 1, money(flow), money(pvs[index]), money(simpleCumulative), money(discountedCumulative)]);
+    });
+    const formatPayback = (value) => value === null ? "Não recuperado" : `${value.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} período(s)`;
     const style = Math.abs(net) < 0.005 ? "" : net > 0 ? "success" : "danger";
     const decision = Math.abs(net) < 0.005 ? "Indiferente: VPL igual a zero." : net > 0 ? "Projeto financeiramente atrativo." : "Projeto não atrativo sob a taxa informada.";
-    result.innerHTML = `<div class="result-grid">${card("VPL", money(net), style)}${card("Fluxos nominais", money(flows.reduce((a, b) => a + b, 0)))}${card("TIR estimada", irr === null ? "Não encontrada" : pct(irr))}</div><div class="callout ${net >= 0 ? "info" : ""}"><span>${net >= 0 ? "✓" : "!"}</span><div><strong>${decision}</strong></div></div>${table(["Período", "Fluxo nominal", "Valor presente"], flows.map((flow, index) => [index + 1, money(flow), money(pvs[index])]))}`;
+    result.innerHTML = `<div class="result-grid">${card("VPL", money(net), style)}${card("TIR estimada", irr === null ? "Não encontrada" : pct(irr))}${card("TIR Modificada", modifiedIrr === null ? "Não calculável" : pct(modifiedIrr))}${card("Payback simples", formatPayback(simplePayback), simplePayback === null ? "danger" : "success")}${card("Payback descontado", formatPayback(discountedPayback), discountedPayback === null ? "danger" : "success")}${card("Fluxos nominais", money(flows.reduce((a, b) => a + b, 0)))}</div><div class="callout ${net >= 0 ? "info" : ""}"><span>${net >= 0 ? "✓" : "!"}</span><div><strong>${decision}</strong><br><small>O payback descontado usa a TMA; a TIR Modificada usa as taxas de financiamento e reinvestimento informadas.</small></div></div>${table(["Período", "Fluxo nominal", "Valor presente", "Acumulado simples", "Acumulado descontado"], rows)}`;
   }
 
   const handlers = { "juros-simples": simpleInterest, "juros-compostos": compoundInterest, amortizacao: amortization, taxas: rates, "series-diferidas": deferredSeries, previdencia: pension, "desconto-comercial": discount, "equivalencia-fluxos": equivalence, vpl: netPresentValue };
@@ -180,7 +200,10 @@
   }
   if (kind === "vpl") {
     [3000, 3500, 4200].forEach((value, index) => addDynamicRow(document.getElementById("vplFluxos"), index + 1, value));
-    document.querySelector("[data-add-vpl]").addEventListener("click", () => addDynamicRow(document.getElementById("vplFluxos"), document.getElementById("vplFluxos").children.length + 1, ""));
+    document.querySelector("[data-add-vpl]").addEventListener("click", () => {
+      const periods = Array.from(document.querySelectorAll("#vplFluxos [data-period]")).map((input) => F.parseNumberBR(input.value)).filter(Number.isFinite);
+      addDynamicRow(document.getElementById("vplFluxos"), (periods.length ? Math.max(...periods) : 0) + 1, "");
+    });
   }
   if (kind === "amortizacao") {
     document.getElementById("exportAllPlans").addEventListener("click", exportAllPlans);
