@@ -35,13 +35,39 @@
   let programCounter = 0;
   let program = [];
   let recordingPrefix = null;
+  let recordingSequence = null;
   let gotoPending = null;
+  let executingProgramInstruction = false;
+  let programTimer = null;
+  let programExecutionCount = 0;
   let poweredOn = true;
   let lastAction = "Pronta — digite um valor";
 
+  const keyCodes = {
+    n: "11", i: "12", PV: "13", PMT: "14", FV: "15", CHS: "16", "7": "7", "8": "8", "9": "9", "/": "10",
+    POW: "21", RECIP: "22", PCT_TOTAL: "23", DELTA_PERCENT: "24", PERCENT: "25", EEX: "26", "4": "4", "5": "5", "6": "6", "*": "20",
+    RS: "31", SST: "32", RDOWN: "33", XSWAP: "34", CLX: "35", ENTER: "36", "1": "1", "2": "2", "3": "3", "-": "30",
+    f: "42", g: "43", STO: "44", RCL: "45", "0": "0", ".": "48", SIGMA: "49", "+": "40"
+  };
   const formatDisplay = (value) => {
     if (!Number.isFinite(value)) return "Error";
     return value.toLocaleString("en-US", { useGrouping: false, minimumFractionDigits: displayDigits, maximumFractionDigits: displayDigits });
+  };
+  const programCapacity = () => Math.min(99, 8 + Math.ceil(Math.max(0, program.length - 8) / 7) * 7);
+  const programInstructionAt = (line) => line > 0 && line <= program.length ? program[line - 1] : null;
+  const programCode = (instruction) => {
+    if (!instruction) return "43, 33 00";
+    const keys = instruction.keys;
+    if (keys[0] === "g" && keys[1] === "RDOWN") return `43, 33 ${keys.slice(2).join("")}`;
+    return keys.map((key) => keyCodes[key] || key).join(" ");
+  };
+  const showProgramLine = () => {
+    const line = Math.max(0, Math.min(99, programCounter));
+    display.textContent = line === 0
+      ? "00-"
+      : `${String(line).padStart(2, "0")}-  ${programCode(programInstructionAt(line))}`;
+    status.textContent = lastAction;
+    showIndicators();
   };
   const show = (value = stack[0]) => {
     display.textContent = poweredOn ? formatDisplay(value) : "";
@@ -133,8 +159,12 @@
       gotoPending += value;
       if (gotoPending.length >= 2) {
         const target = Number(gotoPending);
-        programCounter = target === 0 ? 0 : Math.min(program.length, target - 1);
-        lastAction = `GTO ${programCounter}`;
+        if (target > programCapacity()) {
+          gotoPending = null;
+          return error("Error 4 — linha de programa inexistente");
+        }
+        programCounter = target === 0 ? 0 : target - 1;
+        lastAction = `GTO ${String(target).padStart(2, "0")}`;
         gotoPending = null;
       }
       return show();
@@ -685,6 +715,14 @@
     lastAction = "Visor mantido em formato decimal";
     show();
   }
+  function showMemoryAvailability() {
+    const lines = programCapacity();
+    const registers = 20 - Math.ceil(Math.max(0, lines - 8) / 7);
+    display.textContent = `P-${String(lines).padStart(2, "0")} r-${String(registers).padStart(2, "0")}`;
+    lastAction = "Memória disponível";
+    status.textContent = lastAction;
+    showIndicators();
+  }
   function clearFinancial() {
     Object.keys(financial).forEach((key) => { financial[key] = null; });
     cashFlows = [];
@@ -699,47 +737,106 @@
   function clearProgram() {
     program = [];
     programCounter = 0;
+    recordingPrefix = null;
+    recordingSequence = null;
     lastAction = "Programa limpo";
-    show();
+    if (programMode) showProgramLine();
+    else show();
   }
   function toggleProgramMode() {
     programMode = !programMode;
     programRunning = false;
     recordingPrefix = null;
-    programCounter = programMode ? program.length : 0;
-    lastAction = programMode ? `Modo PRGM · linha ${programCounter}` : "Modo RUN";
-    show();
+    recordingSequence = null;
+    if (!programMode) programCounter = 0;
+    lastAction = programMode ? `Modo PRGM · linha ${programCounter}` : "Modo RUN · linha 00";
+    if (programMode) showProgramLine();
+    else show();
   }
-  function recordProgramKey(key) {
-    if (recordingPrefix === "f" && key === "RS") return toggleProgramMode();
-    if (recordingPrefix === "f" && key === "RDOWN") {
+  function recordProgramInstruction(keys) {
+    if (programCounter >= 99) {
       recordingPrefix = null;
-      return clearProgram();
-    }
-    if (program.length >= 99) {
-      recordingPrefix = null;
+      recordingSequence = null;
       return error("Memória de programa cheia (99 passos)");
     }
-    program.push({ prefix: recordingPrefix, key });
+    while (program.length < programCounter) program.push(null);
+    program[programCounter] = { keys: [...keys] };
+    programCounter += 1;
     recordingPrefix = null;
-    programCounter = program.length;
-    lastAction = `PRGM ${String(programCounter).padStart(2, "0")} · ${program.at(-1).prefix || ""} ${key}`.trim();
-    show(programCounter);
+    recordingSequence = null;
+    lastAction = `PRGM · linha ${String(programCounter).padStart(2, "0")}`;
+    showProgramLine();
   }
   function browseProgram(direction) {
-    if (!program.length) return error("Programa vazio");
-    programCounter = Math.min(program.length, Math.max(1, programCounter + direction));
-    const instruction = program[programCounter - 1];
-    lastAction = `PRGM ${String(programCounter).padStart(2, "0")} · ${instruction.prefix || ""} ${instruction.key}`.trim();
-    show(programCounter);
+    const lastBrowsableLine = programCapacity();
+    programCounter = Math.min(lastBrowsableLine, Math.max(0, programCounter + direction));
+    lastAction = `PRGM · linha ${String(programCounter).padStart(2, "0")}`;
+    showProgramLine();
   }
   function executeProgramStep() {
-    if (!program.length) return error("Programa vazio");
-    if (programCounter >= program.length) programCounter = 0;
+    if (!program.length || programCounter >= program.length) {
+      programCounter = 0;
+      programRunning = false;
+      lastAction = "Programa concluído · linha 00";
+      return show();
+    }
     const instruction = program[programCounter];
-    programCounter += 1;
-    if (instruction.prefix) prefix = instruction.prefix;
-    press(instruction.key, true);
+    if (!instruction) {
+      programCounter = 0;
+      programRunning = false;
+      lastAction = "GTO 00 · programa interrompido";
+      return show();
+    }
+    const line = programCounter + 1;
+    programCounter = line;
+    const keys = instruction.keys;
+    if (keys[0] === "g" && keys[1] === "RDOWN") {
+      const target = Number(keys.slice(2).join(""));
+      if (target === 0) {
+        programCounter = 0;
+        programRunning = false;
+        lastAction = "GTO 00 · programa interrompido";
+        return show();
+      }
+      if (target > programCapacity()) {
+        programRunning = false;
+        return error("Error 4 — linha de programa inexistente");
+      }
+      programCounter = target - 1;
+      lastAction = `GTO ${String(target).padStart(2, "0")}`;
+      return show();
+    }
+    if (keys.length === 2 && keys[0] === "g" && keys[1] === "RS") {
+      lastAction = "PSE · pausa de programa";
+      show();
+      return "pause";
+    }
+    executingProgramInstruction = true;
+    try {
+      keys.forEach((key) => press(key, true));
+    } finally {
+      executingProgramInstruction = false;
+    }
+  }
+  function continueProgram() {
+    while (programRunning && programExecutionCount < 10000) {
+      const result = executeProgramStep();
+      programExecutionCount += 1;
+      if (result === "pause" && programRunning) {
+        if (typeof setTimeout === "function") {
+          programTimer = setTimeout(() => {
+            programTimer = null;
+            continueProgram();
+          }, 1000);
+          return;
+        }
+      }
+    }
+    if (programExecutionCount >= 10000) {
+      programRunning = false;
+      return error("Limite de execução do programa");
+    }
+    show();
   }
   function runProgram() {
     if (programRunning) {
@@ -748,17 +845,10 @@
       return show();
     }
     if (!program.length) return error("Programa vazio");
+    if (!Number.isFinite(commit())) return;
     programRunning = true;
-    programCounter = 0;
-    let guard = 0;
-    while (programRunning && programCounter < program.length && guard < 10000) {
-      executeProgramStep();
-      guard += 1;
-    }
-    programRunning = false;
-    if (guard >= 10000) return error("Limite de execução do programa");
-    lastAction = "Programa concluído";
-    show();
+    programExecutionCount = 0;
+    continueProgram();
   }
 
   function handlePrefix(key) {
@@ -806,7 +896,7 @@
       CHS: dateAdd,
       "7": () => { beginMode = true; lastAction = "Pagamentos antecipados"; show(); },
       "8": () => { beginMode = false; lastAction = "Pagamentos postecipados"; show(); },
-      "9": () => setX(Math.max(0, 99 - program.length), "Passos de programa disponíveis"),
+      "9": showMemoryAvailability,
       POW: squareRoot,
       RECIP: exponential,
       PCT_TOTAL: naturalLog,
@@ -829,13 +919,13 @@
       },
       XSWAP: () => {
         const condition = stack[0] <= stack[1];
-        if (programRunning && !condition) programCounter += 1;
+        if (executingProgramInstruction && !condition) programCounter += 1;
         lastAction = `Teste x ≤ y: ${condition ? "verdadeiro" : "falso"}`;
         show();
       },
       CLX: () => {
         const condition = stack[0] === 0;
-        if (programRunning && !condition) programCounter += 1;
+        if (executingProgramInstruction && !condition) programCounter += 1;
         lastAction = `Teste x = 0: ${condition ? "verdadeiro" : "falso"}`;
         show();
       },
@@ -858,11 +948,59 @@
       return;
     }
     if (!poweredOn) return;
+    if (programRunning && !fromProgram) {
+      programRunning = false;
+      if (programTimer !== null && typeof clearTimeout === "function") clearTimeout(programTimer);
+      programTimer = null;
+      lastAction = "Programa interrompido manualmente";
+      return show();
+    }
     if (programMode && !fromProgram) {
+      if (recordingSequence) {
+        const keys = recordingSequence;
+        const isGoto = keys[0] === "g" && keys[1] === "RDOWN";
+        if (isGoto && keys.length === 2 && key === ".") {
+          recordingSequence.push(".");
+          lastAction = "GTO: informe a linha de programa";
+          return showProgramLine();
+        }
+        if (isGoto && /^\d$/.test(key)) {
+          recordingSequence.push(key);
+          const digitCount = recordingSequence.filter((item) => /^\d$/.test(item)).length;
+          if (digitCount < 2) {
+            lastAction = "GTO: informe o segundo dígito";
+            return showProgramLine();
+          }
+          const navigation = recordingSequence.includes(".");
+          const target = Number(recordingSequence.filter((item) => /^\d$/.test(item)).join(""));
+          if (target > programCapacity()) {
+            recordingSequence = null;
+            return error("Error 4 — linha de programa inexistente");
+          }
+          if (navigation) {
+            recordingSequence = null;
+            programCounter = target;
+            lastAction = `PRGM · linha ${String(programCounter).padStart(2, "0")}`;
+            return showProgramLine();
+          }
+          return recordProgramInstruction(["g", "RDOWN", ...String(target).padStart(2, "0")]);
+        }
+        if ((keys[0] === "STO" || keys[0] === "RCL") && keys.length === 1 && ["+", "-", "*", "/", "."].includes(key)) {
+          recordingSequence.push(key);
+          lastAction = "PRGM: complete a instrução de registro";
+          return showProgramLine();
+        }
+        if ((keys[0] === "STO" || keys[0] === "RCL") && (/^\d$/.test(key) || Object.hasOwn(financial, key))) {
+          recordingSequence.push(key);
+          return recordProgramInstruction(recordingSequence);
+        }
+        recordingSequence = null;
+        return error("Instrução de programa incompleta");
+      }
       if (key === "f" || key === "g") {
         recordingPrefix = key;
         lastAction = `PRGM: prefixo ${key}`;
-        return show();
+        return showProgramLine();
       }
       if (!recordingPrefix && key === "SST") return browseProgram(1);
       if (recordingPrefix === "g" && key === "SST") {
@@ -874,7 +1012,18 @@
         recordingPrefix = null;
         return handlePrefix(key);
       }
-      return recordProgramKey(key);
+      if (recordingPrefix === "g" && key === "RDOWN") {
+        recordingSequence = ["g", "RDOWN"];
+        recordingPrefix = null;
+        lastAction = "GTO: informe dois dígitos; use ponto antes deles para navegar";
+        return showProgramLine();
+      }
+      if (!recordingPrefix && (key === "STO" || key === "RCL")) {
+        recordingSequence = [key];
+        lastAction = `PRGM: complete ${key}`;
+        return showProgramLine();
+      }
+      return recordProgramInstruction(recordingPrefix ? [recordingPrefix, key] : [key]);
     }
     if (memoryAction && ["+", "-", "*", "/"].includes(key)) {
       memoryOperator = key;
