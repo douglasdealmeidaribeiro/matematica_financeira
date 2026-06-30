@@ -30,6 +30,7 @@
   let dateDmy = true;
   let displayDigits = 2;
   let lastX = 0;
+  let financialInputPending = false;
   let programMode = false;
   let programRunning = false;
   let programCounter = 0;
@@ -54,6 +55,7 @@
     return value.toLocaleString("en-US", { useGrouping: false, minimumFractionDigits: displayDigits, maximumFractionDigits: displayDigits });
   };
   const programCapacity = () => Math.min(99, 8 + Math.ceil(Math.max(0, program.length - 8) / 7) * 7);
+  const availableStorageRegisters = () => 20 - Math.ceil(Math.max(0, programCapacity() - 8) / 7);
   const programInstructionAt = (line) => line > 0 && line <= program.length ? program[line - 1] : null;
   const programCode = (instruction) => {
     if (!instruction) return "43, 33 00";
@@ -89,7 +91,7 @@
     memoryOperator = null;
     memoryDecimal = false;
     lastAction = message;
-    display.textContent = "Error";
+    display.textContent = message.match(/^Error \d+/)?.[0] || "Error";
     status.textContent = message;
     showIndicators();
   };
@@ -116,6 +118,7 @@
     entering = false;
     stackLiftEnabled = true;
     exponentMode = false;
+    financialInputPending = true;
     lastAction = message;
     show(value);
   };
@@ -125,13 +128,26 @@
     entering = false;
     stackLiftEnabled = true;
     exponentMode = false;
+    financialInputPending = true;
   };
 
   function handleMemoryDigit(digit) {
     const index = Number(digit) + (memoryDecimal ? 10 : 0);
+    if (index >= availableStorageRegisters()) {
+      memoryAction = null;
+      memoryOperator = null;
+      memoryDecimal = false;
+      return error("Error 6 — registro convertido em memória de programa");
+    }
     const x = commit();
     if (memoryAction === "STO") {
       if (memoryOperator) {
+        if (index > 4) {
+          memoryAction = null;
+          memoryOperator = null;
+          memoryDecimal = false;
+          return error("Error 1 — aritmética permitida apenas em R0–R4");
+        }
         if (memoryOperator === "/" && x === 0) return error("Divisão por zero no registro");
         memory[index] = { "+": memory[index] + x, "-": memory[index] - x, "*": memory[index] * x, "/": memory[index] / x }[memoryOperator];
       } else memory[index] = x;
@@ -142,9 +158,12 @@
         if (memoryOperator === "/" && recalled === 0) return error("Divisão por zero no registro");
         recalled = { "+": x + recalled, "-": x - recalled, "*": x * recalled, "/": x / recalled }[memoryOperator];
       }
-      stack[0] = recalled;
+      if (stackLiftEnabled) stack = [recalled, stack[0], stack[1], stack[2]];
+      else stack[0] = recalled;
       entry = String(stack[0]);
       entering = false;
+      stackLiftEnabled = true;
+      financialInputPending = true;
       lastAction = `Valor recuperado de R${memoryDecimal ? "." : ""}${digit}`;
     }
     memoryAction = null;
@@ -180,6 +199,7 @@
       entry += value;
     }
     stack[0] = Number(entry);
+    financialInputPending = true;
     lastAction = "Digitando";
     show(Number(entry));
     display.textContent = entry;
@@ -191,6 +211,7 @@
     stack = [value, value, stack[1], stack[2]];
     entry = String(value);
     stackLiftEnabled = false;
+    financialInputPending = true;
     lastAction = "ENTER — valor elevado na pilha";
     show(value);
   }
@@ -273,6 +294,7 @@
     stack = [stack[1], stack[2], stack[3], stack[0]];
     entry = String(stack[0]);
     stackLiftEnabled = true;
+    financialInputPending = true;
     lastAction = "Pilha rotacionada para baixo";
     show();
   }
@@ -281,6 +303,7 @@
     [stack[0], stack[1]] = [stack[1], stack[0]];
     entry = String(stack[0]);
     stackLiftEnabled = true;
+    financialInputPending = true;
     lastAction = "X e Y trocados";
     show();
   }
@@ -289,6 +312,7 @@
     entry = "0";
     entering = false;
     stackLiftEnabled = false;
+    financialInputPending = true;
     exponentMode = false;
     lastAction = "Registro X limpo";
     show(0);
@@ -298,6 +322,7 @@
     entry = "0";
     entering = false;
     stackLiftEnabled = false;
+    financialInputPending = false;
     exponentMode = false;
     prefix = null;
     memoryAction = null;
@@ -310,7 +335,8 @@
     lastX = 0;
     refreshRegisters();
     lastAction = "Pilha, registros e fluxos limpos";
-    show(0);
+    if (programMode) showProgramLine();
+    else show(0);
   }
 
   const annuityFactor = (periods, rate) => {
@@ -324,6 +350,7 @@
     const value = commit();
     if (!Number.isFinite(value)) return;
     financial[key] = value;
+    financialInputPending = false;
     lastAction = `${key} armazenado`;
     refreshRegisters();
     show(value);
@@ -383,6 +410,7 @@
     }
     if (!Number.isFinite(answer)) return error("Resultado financeiro inválido");
     financial[key] = answer;
+    financialInputPending = false;
     refreshRegisters();
     stack[0] = answer;
     entry = String(answer);
@@ -391,7 +419,7 @@
     show(answer);
   }
   function financialKey(key) {
-    if (entering) storeFinancial(key);
+    if (financialInputPending) storeFinancial(key);
     else solveFinancial(key);
   }
 
@@ -717,7 +745,7 @@
   }
   function showMemoryAvailability() {
     const lines = programCapacity();
-    const registers = 20 - Math.ceil(Math.max(0, lines - 8) / 7);
+    const registers = availableStorageRegisters();
     display.textContent = `P-${String(lines).padStart(2, "0")} r-${String(registers).padStart(2, "0")}`;
     lastAction = "Memória disponível";
     status.textContent = lastAction;
@@ -727,12 +755,20 @@
     Object.keys(financial).forEach((key) => { financial[key] = null; });
     cashFlows = [];
     beginMode = false;
+    financialInputPending = false;
     refreshRegisters();
-    setX(0, "Registros financeiros limpos");
+    lastAction = "Registros financeiros limpos";
+    show();
   }
   function clearStatistics() {
     Object.keys(statistics).forEach((key) => { statistics[key] = 0; });
-    setX(0, "Registros estatísticos limpos");
+    memory.fill(0, 1, 7);
+    stack = [0, 0, 0, 0];
+    entry = "0";
+    entering = false;
+    stackLiftEnabled = false;
+    exponentMode = false;
+    setX(0, "Registros estatísticos e pilha limpos");
   }
   function clearProgram() {
     program = [];
@@ -742,6 +778,12 @@
     lastAction = "Programa limpo";
     if (programMode) showProgramLine();
     else show();
+  }
+  function clearOrResetProgram() {
+    if (programMode) return clearProgram();
+    programCounter = 0;
+    lastAction = "Programa reposicionado na linha 00";
+    show();
   }
   function toggleProgramMode() {
     programMode = !programMode;
@@ -759,9 +801,14 @@
       recordingSequence = null;
       return error("Memória de programa cheia (99 passos)");
     }
+    const previousAvailableRegisters = availableStorageRegisters();
     while (program.length < programCounter) program.push(null);
     program[programCounter] = { keys: [...keys] };
     programCounter += 1;
+    const currentAvailableRegisters = availableStorageRegisters();
+    if (currentAvailableRegisters < previousAvailableRegisters) {
+      memory.fill(0, currentAvailableRegisters);
+    }
     recordingPrefix = null;
     recordingSequence = null;
     lastAction = `PRGM · linha ${String(programCounter).padStart(2, "0")}`;
@@ -769,7 +816,9 @@
   }
   function browseProgram(direction) {
     const lastBrowsableLine = programCapacity();
-    programCounter = Math.min(lastBrowsableLine, Math.max(0, programCounter + direction));
+    if (direction < 0 && programCounter === 0) programCounter = lastBrowsableLine;
+    else if (direction > 0 && programCounter === lastBrowsableLine) programCounter = 0;
+    else programCounter = Math.min(lastBrowsableLine, Math.max(0, programCounter + direction));
     lastAction = `PRGM · linha ${String(programCounter).padStart(2, "0")}`;
     showProgramLine();
   }
@@ -810,6 +859,10 @@
       lastAction = "PSE · pausa de programa";
       show();
       return "pause";
+    }
+    if (keys.length === 3 && keys[0] === "RCL" && keys[1] === "g" && (keys[2] === "n" || keys[2] === "i")) {
+      const x = commit();
+      return setX(keys[2] === "n" ? x / 12 : x * 12, `RCL g ${keys[2]} executado`);
     }
     executingProgramInstruction = true;
     try {
@@ -873,7 +926,7 @@
         PERCENT: () => depreciation("DB"),
         RS: toggleProgramMode,
         SST: clearStatistics,
-        RDOWN: clearProgram,
+        RDOWN: clearOrResetProgram,
         XSWAP: clearFinancial,
         CLX: clearAll,
         ENTER: () => { lastAction = "Prefixo exibido/cancelado"; show(); },
@@ -885,10 +938,12 @@
       n: () => {
         financial.n = commit() * 12; refreshRegisters();
         setX(financial.n, "n anual convertido e armazenado em meses");
+        financialInputPending = false;
       },
       i: () => {
         financial.i = commit() / 12; refreshRegisters();
         setX(financial.i, "i nominal anual convertido e armazenado ao mês");
+        financialInputPending = false;
       },
       PV: () => addCashFlow(true),
       PMT: () => addCashFlow(false),
@@ -908,9 +963,9 @@
       "6": weightedMean,
       RS: () => { lastAction = "Pausa de programa"; show(); },
       SST: () => {
-        programCounter = Math.max(0, programCounter - 1);
+        programCounter = programCounter === 0 ? programCapacity() : programCounter - 1;
         lastAction = `BST · linha ${programCounter}`;
-        show(programCounter);
+        show();
       },
       RDOWN: () => {
         gotoPending = "";
@@ -990,6 +1045,15 @@
           lastAction = "PRGM: complete a instrução de registro";
           return showProgramLine();
         }
+        if (keys[0] === "RCL" && keys.length === 1 && key === "g") {
+          recordingSequence.push(key);
+          lastAction = "PRGM: complete RCL g";
+          return showProgramLine();
+        }
+        if (keys[0] === "RCL" && keys.length === 2 && keys[1] === "g" && (key === "n" || key === "i")) {
+          recordingSequence.push(key);
+          return recordProgramInstruction(recordingSequence);
+        }
         if ((keys[0] === "STO" || keys[0] === "RCL") && (/^\d$/.test(key) || Object.hasOwn(financial, key))) {
           recordingSequence.push(key);
           return recordProgramInstruction(recordingSequence);
@@ -1007,7 +1071,7 @@
         recordingPrefix = null;
         return browseProgram(-1);
       }
-      if (recordingPrefix === "f" && ["RS", "SST", "RDOWN", "XSWAP", "CLX", "ENTER"].includes(key)) {
+      if (recordingPrefix === "f" && ["RS", "RDOWN", "CLX"].includes(key)) {
         prefix = "f";
         recordingPrefix = null;
         return handlePrefix(key);
@@ -1045,7 +1109,14 @@
       }
       const value = financial[key] ?? 0;
       memoryAction = null;
-      return setX(value, `${key} recuperado por RCL`);
+      if (stackLiftEnabled) stack = [value, stack[0], stack[1], stack[2]];
+      else stack[0] = value;
+      entry = String(value);
+      entering = false;
+      stackLiftEnabled = true;
+      financialInputPending = true;
+      lastAction = `${key} recuperado por RCL`;
+      return show(value);
     }
     if (key === "f" || key === "g") {
       prefix = prefix === key ? null : key;

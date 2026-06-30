@@ -310,3 +310,127 @@ test("PSE exibe o resultado intermediário e depois retoma o programa", async ()
   await new Promise((resolve) => setTimeout(resolve, 10));
   assert.equal(hp.display.textContent, "18.00");
 });
+
+test("grava CLEAR FIN e CLEAR Σ, mas não grava CLEAR REG", () => {
+  const hp = createCalculator();
+
+  hp.press("f", "RS", "f", "RDOWN");
+  hp.press("f", "XSWAP");
+  assert.equal(hp.display.textContent, "01-  42 34");
+
+  hp.press("f", "CLX");
+  assert.equal(hp.display.textContent, "01-  42 34");
+
+  hp.press("f", "SST");
+  assert.equal(hp.display.textContent, "02-  42 32");
+});
+
+test("grava e executa RCL g i em uma única linha", () => {
+  const hp = createCalculator();
+
+  hp.press("f", "RS", "f", "RDOWN", "RCL", "g", "i");
+  assert.equal(hp.display.textContent, "01-  45 43 12");
+
+  hp.press("f", "RS");
+  hp.type(1.5);
+  hp.press("RS");
+  assert.equal(hp.display.textContent, "18.00");
+});
+
+test("f CLEAR PRGM em modo RUN reposiciona sem apagar o programa", () => {
+  const hp = createCalculator();
+
+  hp.press("f", "RS", "f", "RDOWN", "2", "+");
+  hp.press("f", "RS");
+  hp.press("f", "RDOWN");
+
+  hp.type(4);
+  hp.press("RS");
+  assert.equal(hp.display.textContent, "6.00");
+});
+
+test("BST na linha 00 volta para a última linha de memória alocada", () => {
+  const hp = createCalculator();
+
+  hp.press("f", "RS", "g", "SST");
+  assert.equal(hp.display.textContent, "08-  43, 33 00");
+});
+
+test("expansão da memória de programa converte R.9 e produz Error 6", () => {
+  const hp = createCalculator();
+
+  hp.press("f", "RS", "f", "RDOWN");
+  hp.press("1", "1", "1", "1", "1", "1", "1", "1", "1");
+  hp.press("f", "RS");
+
+  hp.type(7);
+  hp.press("STO", ".", "9");
+  assert.equal(hp.display.textContent, "Error 6");
+  assert.match(hp.status.textContent, /Error 6/);
+});
+
+test("aceita as 17 linhas do programa de leasing publicado no manual", () => {
+  const hp = createCalculator();
+
+  hp.press("f", "RS", "f", "RDOWN");
+  hp.press(
+    "g", "8",
+    "f", "XSWAP",
+    "RCL", "0",
+    "RCL", "1",
+    "-",
+    "n",
+    "RCL", "2",
+    "PMT",
+    "RCL", "3",
+    "CHS",
+    "RCL", "1",
+    "RCL", "PMT",
+    "*",
+    "+",
+    "PV",
+    "i",
+    "RCL", "g", "i"
+  );
+
+  assert.equal(hp.display.textContent, "17-  45 43 12");
+  hp.press("f", "RS", "g", "9");
+  assert.equal(hp.display.textContent, "P-22 r-18");
+});
+
+test("executa o programa de leasing do manual e obtém 17,33% ao ano", () => {
+  const hp = createCalculator();
+
+  hp.press("f", "RS", "f", "RDOWN");
+  hp.press(
+    "g", "8",
+    "f", "XSWAP",
+    "RCL", "0",
+    "RCL", "1",
+    "-",
+    "n",
+    "RCL", "2",
+    "PMT",
+    "RCL", "3",
+    "CHS",
+    "RCL", "1",
+    "RCL", "PMT",
+    "*",
+    "+",
+    "PV",
+    "i",
+    "RCL", "g", "i"
+  );
+  hp.press("f", "RS");
+
+  hp.type(60);
+  hp.press("STO", "0");
+  hp.type(3);
+  hp.press("STO", "1");
+  hp.type(600);
+  hp.press("STO", "2");
+  hp.type(25000);
+  hp.press("STO", "3", "RS");
+
+  assert.equal(hp.display.textContent, "17.33");
+});
