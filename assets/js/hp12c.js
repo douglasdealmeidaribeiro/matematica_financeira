@@ -6,6 +6,9 @@
 
   const display = document.getElementById("hpDisplayValue");
   const status = document.getElementById("hpStatus");
+  const calculatorViewport = document.getElementById("hpCalculatorViewport");
+  const fullscreenButton = document.getElementById("hpFullscreen");
+  const fullscreenLabel = document.getElementById("hpFullscreenLabel");
   const prefixIndicator = document.getElementById("hpPrefix");
   const modeIndicator = document.getElementById("hpMode");
   const memoryIndicator = document.getElementById("hpMemory");
@@ -42,6 +45,7 @@
   let programTimer = null;
   let programExecutionCount = 0;
   let poweredOn = true;
+  let fullscreenFallback = false;
   let lastAction = "Pronta — digite um valor";
 
   const keyCodes = {
@@ -100,6 +104,47 @@
     modeIndicator.textContent = `${beginMode ? "BEGIN" : "END"}${dateDmy ? " · D.MY" : " · M.DY"}${programMode ? " · PGRM" : ""}`;
     memoryIndicator.textContent = memoryAction ? `${memoryAction}${memoryOperator || ""} ${memoryDecimal ? "." : ""}_` : programRunning ? "RUNNING" : "";
   };
+  const nativeFullscreenElement = () => document.fullscreenElement || document.webkitFullscreenElement || null;
+  const isCalculatorFullscreen = () => nativeFullscreenElement() === calculatorViewport || fullscreenFallback;
+  const updateFullscreenButton = () => {
+    if (!fullscreenButton || !fullscreenLabel) return;
+    const active = isCalculatorFullscreen();
+    fullscreenLabel.textContent = active ? "Sair da tela inteira" : "Tela inteira";
+    fullscreenButton.setAttribute?.("aria-pressed", String(active));
+    fullscreenButton.setAttribute?.("aria-label", active ? "Sair da tela inteira" : "Abrir calculadora em tela inteira");
+  };
+  const exitFullscreenFallback = () => {
+    fullscreenFallback = false;
+    calculatorViewport?.classList?.remove("hp-fullscreen-fallback");
+    document.body?.classList?.remove("hp-fullscreen-open");
+    updateFullscreenButton();
+  };
+  async function toggleCalculatorFullscreen() {
+    if (!calculatorViewport || !fullscreenButton) return;
+    if (nativeFullscreenElement() === calculatorViewport) {
+      const exitFullscreen = document.exitFullscreen || document.webkitExitFullscreen;
+      if (exitFullscreen) await exitFullscreen.call(document);
+      return;
+    }
+    if (fullscreenFallback) {
+      exitFullscreenFallback();
+      return;
+    }
+    const requestFullscreen = calculatorViewport.requestFullscreen || calculatorViewport.webkitRequestFullscreen;
+    if (requestFullscreen) {
+      try {
+        await requestFullscreen.call(calculatorViewport);
+        updateFullscreenButton();
+        return;
+      } catch {
+        // Alguns navegadores móveis expõem a API, mas recusam elementos não multimídia.
+      }
+    }
+    fullscreenFallback = true;
+    calculatorViewport.classList?.add("hp-fullscreen-fallback");
+    document.body?.classList?.add("hp-fullscreen-open");
+    updateFullscreenButton();
+  }
   const commit = () => {
     if (entering) {
       const value = Number(entry);
@@ -1159,7 +1204,15 @@
     const button = event.target.closest("[data-key]");
     if (button) press(button.dataset.key);
   });
+  fullscreenButton?.addEventListener?.("click", toggleCalculatorFullscreen);
+  document.addEventListener("fullscreenchange", updateFullscreenButton);
+  document.addEventListener("webkitfullscreenchange", updateFullscreenButton);
   document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && fullscreenFallback) {
+      exitFullscreenFallback();
+      event.preventDefault();
+      return;
+    }
     const map = { Enter: "ENTER", Escape: "CLX", Backspace: "CLX", ",": "." };
     const key = map[event.key] || event.key;
     if (/^\d$/.test(key) || key === "." || ["ENTER", "CLX", "+", "-", "*", "/"].includes(key)) {
@@ -1169,5 +1222,6 @@
   });
 
   refreshRegisters();
+  updateFullscreenButton();
   show(0);
 })();

@@ -6,7 +6,22 @@ const vm = require("node:vm");
 function createCalculator({ timers = false } = {}) {
   const elements = new Map();
   const element = (id) => {
-    if (!elements.has(id)) elements.set(id, { textContent: "" });
+    if (!elements.has(id)) {
+      const classes = new Set();
+      elements.set(id, {
+        textContent: "",
+        attributes: {},
+        listeners: {},
+        classList: {
+          add: (...names) => names.forEach((name) => classes.add(name)),
+          remove: (...names) => names.forEach((name) => classes.delete(name)),
+          contains: (name) => classes.has(name),
+        },
+        addEventListener(type, handler) { this.listeners[type] = handler; },
+        setAttribute(name, value) { this.attributes[name] = value; },
+        click() { return this.listeners.click?.({ currentTarget: this, target: this }); },
+      });
+    }
     return elements.get(id);
   };
 
@@ -28,6 +43,7 @@ function createCalculator({ timers = false } = {}) {
     },
     getElementById: element,
     addEventListener() {},
+    body: element("body"),
   };
 
   const context = {
@@ -69,6 +85,10 @@ function createCalculator({ timers = false } = {}) {
     press,
     type,
     enterPair,
+    fullscreenButton: element("hpFullscreen"),
+    fullscreenLabel: element("hpFullscreenLabel"),
+    fullscreenViewport: element("hpCalculatorViewport"),
+    body: document.body,
   };
 }
 
@@ -263,6 +283,23 @@ test("CLEAR FIN preserva o valor exibido para a próxima entrada financeira", ()
   assert.match(hp.status.textContent, /PV armazenado/);
   hp.press("RCL", "PV");
   assert.equal(hp.display.textContent, "1250.00");
+});
+
+test("oferece tela inteira com fallback e controle para sair", async () => {
+  const hp = createCalculator();
+
+  assert.equal(hp.fullscreenLabel.textContent, "Tela inteira");
+  await hp.fullscreenButton.click();
+  assert.equal(hp.fullscreenLabel.textContent, "Sair da tela inteira");
+  assert.equal(hp.fullscreenButton.attributes["aria-pressed"], "true");
+  assert.equal(hp.fullscreenViewport.classList.contains("hp-fullscreen-fallback"), true);
+  assert.equal(hp.body.classList.contains("hp-fullscreen-open"), true);
+
+  await hp.fullscreenButton.click();
+  assert.equal(hp.fullscreenLabel.textContent, "Tela inteira");
+  assert.equal(hp.fullscreenButton.attributes["aria-pressed"], "false");
+  assert.equal(hp.fullscreenViewport.classList.contains("hp-fullscreen-fallback"), false);
+  assert.equal(hp.body.classList.contains("hp-fullscreen-open"), false);
 });
 
 test("eleva a pilha automaticamente ao iniciar uma nova entrada", () => {
