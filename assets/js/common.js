@@ -1,6 +1,20 @@
 (function () {
   "use strict";
 
+  const analyticsId = "G-ZMBRCR3HDB";
+  if (!document.querySelector("script[data-google-analytics]")) {
+    const analyticsScript = document.createElement("script");
+    analyticsScript.async = true;
+    analyticsScript.src = `https://www.googletagmanager.com/gtag/js?id=${analyticsId}`;
+    analyticsScript.dataset.googleAnalytics = analyticsId;
+    document.head.appendChild(analyticsScript);
+
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
+    window.gtag("js", new Date());
+    window.gtag("config", analyticsId);
+  }
+
   const body = document.body;
   const root = body.dataset.root || ".";
   const page = body.dataset.page || "";
