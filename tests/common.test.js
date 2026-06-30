@@ -37,13 +37,13 @@ test("carrega o Google Analytics uma única vez em todas as páginas", () => {
 
   assert.equal(appendedScripts.length, 1);
   assert.equal(appendedScripts[0].async, true);
-  assert.equal(appendedScripts[0].dataset.googleAnalytics, "G-ZMBRCR3HDB");
+  assert.equal(appendedScripts[0].dataset.googleAnalytics, "G-9JBQT843QK");
   assert.equal(
     appendedScripts[0].src,
-    "https://www.googletagmanager.com/gtag/js?id=G-ZMBRCR3HDB"
+    "https://www.googletagmanager.com/gtag/js?id=G-9JBQT843QK"
   );
   assert.equal(window.dataLayer.length, 2);
   assert.equal(window.dataLayer[0][0], "js");
   assert.equal(window.dataLayer[1][0], "config");
-  assert.equal(window.dataLayer[1][1], "G-ZMBRCR3HDB");
+  assert.equal(window.dataLayer[1][1], "G-9JBQT843QK");
 });

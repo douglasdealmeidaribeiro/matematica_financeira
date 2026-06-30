@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const analyticsId = "G-ZMBRCR3HDB";
+  const analyticsId = "G-9JBQT843QK";
   if (!document.querySelector("script[data-google-analytics]")) {
     const analyticsScript = document.createElement("script");
     analyticsScript.async = true;
