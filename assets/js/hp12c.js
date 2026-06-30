@@ -757,7 +757,7 @@
     Object.keys(financial).forEach((key) => { financial[key] = null; });
     cashFlows = [];
     beginMode = false;
-    financialInputPending = false;
+    financialInputPending = true;
     refreshRegisters();
     lastAction = "Registros financeiros limpos";
     show();

@@ -252,6 +252,19 @@ test("AMORT no modo END continua cobrando juros antes da primeira prestação", 
   assert.equal(hp.display.textContent, "90.91");
 });
 
+test("CLEAR FIN preserva o valor exibido para a próxima entrada financeira", () => {
+  const hp = createCalculator();
+
+  hp.type(1250);
+  hp.press("f", "XSWAP");
+  assert.equal(hp.display.textContent, "1250.00");
+
+  hp.press("PV");
+  assert.match(hp.status.textContent, /PV armazenado/);
+  hp.press("RCL", "PV");
+  assert.equal(hp.display.textContent, "1250.00");
+});
+
 test("eleva a pilha automaticamente ao iniciar uma nova entrada", () => {
   const hp = createCalculator();
 
