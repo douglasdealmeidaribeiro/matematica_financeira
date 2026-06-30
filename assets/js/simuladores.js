@@ -37,7 +37,7 @@
       const p = Math.min(index + 1, adjustedPeriods);
       return [p.toLocaleString("pt-BR"), money(capital), money(capital * rate * p), money(F.montanteSimples(capital, rate, p))];
     });
-    result.innerHTML = `<div class="result-grid">${card("Juros", money(interest))}${card("Montante", money(amount), "success")}${card("Prazo equivalente", `${adjustedPeriods.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} ${rateUnit}(es)`)}</div>${table(["Período", "Capital", "Juros acumulados", "Montante"], rows)}`;
+    result.innerHTML = `<div class="result-grid">${card("Juros", money(interest))}${card("Valor Futuro (FV)", money(amount), "success")}${card("Prazo equivalente", `${adjustedPeriods.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} ${rateUnit}(es)`)}</div>${table(["Período", "Valor Presente (PV)", "Juros acumulados", "Valor Futuro (FV)"], rows)}`;
   }
 
   function compoundInterest() {
@@ -50,7 +50,7 @@
       rows.push([p, money(opening), money(interest), money(contribution), money(balance)]);
     }
     const simple = F.montanteSimples(capital, rate, periods) + contribution * periods;
-    result.innerHTML = `<div class="result-grid">${card("Montante final", money(balance), "success")}${card("Juros acumulados", money(balance - totalContributed))}${card("Total aportado", money(totalContributed))}</div>
+    result.innerHTML = `<div class="result-grid">${card("Valor Futuro (FV)", money(balance), "success")}${card("Juros acumulados", money(balance - totalContributed))}${card("Total aportado", money(totalContributed))}</div>
       <div class="comparison-bars"><div class="bar-row"><span>Juros simples*</span><div class="bar-track"><div class="bar-fill" style="width:${Math.min(100, simple / balance * 100)}%"></div></div><strong>${money(simple)}</strong></div><div class="bar-row"><span>Compostos</span><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><strong>${money(balance)}</strong></div></div>
       <small>*Comparação simplificada: os aportes não rendem no cenário simples.</small>${table(["Período", "Saldo inicial", "Juros", "Aporte", "Saldo final"], rows)}`;
   }
