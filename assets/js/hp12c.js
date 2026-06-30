@@ -54,9 +54,18 @@
     RS: "31", SST: "32", RDOWN: "33", XSWAP: "34", CLX: "35", ENTER: "36", "1": "1", "2": "2", "3": "3", "-": "30",
     f: "42", g: "43", STO: "44", RCL: "45", "0": "0", ".": "48", SIGMA: "49", "+": "40"
   };
+  const formatEntry = (rawValue) => {
+    const [rawMantissa, exponent] = String(rawValue).split("e");
+    const sign = rawMantissa.startsWith("-") ? "-" : "";
+    const unsignedMantissa = sign ? rawMantissa.slice(1) : rawMantissa;
+    const hasDecimal = unsignedMantissa.includes(".");
+    const [integer = "0", fraction = ""] = unsignedMantissa.split(".");
+    const groupedInteger = (integer || "0").replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return `${sign}${groupedInteger}${hasDecimal ? `,${fraction}` : ""}${exponent !== undefined ? `e${exponent}` : ""}`;
+  };
   const formatDisplay = (value) => {
     if (!Number.isFinite(value)) return "Error";
-    return value.toLocaleString("en-US", { useGrouping: false, minimumFractionDigits: displayDigits, maximumFractionDigits: displayDigits });
+    return value.toLocaleString("pt-BR", { useGrouping: true, minimumFractionDigits: displayDigits, maximumFractionDigits: displayDigits });
   };
   const programCapacity = () => Math.min(99, 8 + Math.ceil(Math.max(0, program.length - 8) / 7) * 7);
   const availableStorageRegisters = () => 20 - Math.ceil(Math.max(0, programCapacity() - 8) / 7);
@@ -84,7 +93,7 @@
   };
   const refreshRegisters = () => {
     Object.entries(registerElements).forEach(([key, element]) => {
-      element.textContent = financial[key] === null ? "0*" : formatDisplay(financial[key]).replace(/\.00$/, "");
+      element.textContent = financial[key] === null ? "0*" : formatDisplay(financial[key]).replace(/,00$/, "");
     });
   };
   const error = (message) => {
@@ -247,7 +256,7 @@
     financialInputPending = true;
     lastAction = "Digitando";
     show(Number(entry));
-    display.textContent = entry;
+    display.textContent = formatEntry(entry);
   }
   function enter() {
     if (!poweredOn) return;
@@ -316,7 +325,7 @@
       stack[0] = Number(entry);
       lastAction = "Sinal da entrada alterado";
       show(stack[0]);
-      display.textContent = entry;
+      display.textContent = formatEntry(entry);
       return;
     }
     setX(-stack[0], "Sinal de X alterado");
@@ -331,7 +340,7 @@
     exponentMode = true;
     lastAction = "Informe o expoente";
     showIndicators();
-    display.textContent = entry;
+    display.textContent = formatEntry(entry);
     status.textContent = lastAction;
   }
   function rollDown() {
@@ -677,7 +686,7 @@
     dropBinary(encodeDate(result));
     lastAction = `DATE: ${dayName}`;
     show();
-    display.textContent = encodeDate(result).toFixed(6);
+    display.textContent = formatEntry(encodeDate(result).toFixed(6));
   }
   function dateDifference() {
     const first = parseDate(stack[1]), second = parseDate(commit());

@@ -109,9 +109,9 @@ test("reproduz a estimativa linear e o r do exemplo do manual da HP 12C", () => 
   hp.type(48);
   hp.press("g", "1");
 
-  assert.equal(hp.display.textContent, "28818.93");
+  assert.equal(hp.display.textContent, "28.818,93");
   hp.press("XSWAP");
-  assert.equal(hp.display.textContent, "0.90");
+  assert.equal(hp.display.textContent, "0,90");
 });
 
 test("reproduz médias e desvios amostrais do exemplo estatístico do manual", () => {
@@ -130,14 +130,14 @@ test("reproduz médias e desvios amostrais do exemplo estatístico do manual", (
   data.forEach(([y, x]) => hp.enterPair(y, x));
 
   hp.press("g", "0");
-  assert.equal(hp.display.textContent, "21714.29");
+  assert.equal(hp.display.textContent, "21.714,29");
   hp.press("XSWAP");
-  assert.equal(hp.display.textContent, "40.00");
+  assert.equal(hp.display.textContent, "40,00");
 
   hp.press("g", ".");
-  assert.equal(hp.display.textContent, "4820.59");
+  assert.equal(hp.display.textContent, "4.820,59");
   hp.press("XSWAP");
-  assert.equal(hp.display.textContent, "6.03");
+  assert.equal(hp.display.textContent, "6,03");
 });
 
 test("preserva a pilha para obter intercepto e inclinação pela sequência do manual", () => {
@@ -157,11 +157,11 @@ test("preserva a pilha para obter intercepto e inclinação pela sequência do m
 
   hp.type(0);
   hp.press("g", "2");
-  assert.equal(hp.display.textContent, "15.549180");
+  assert.equal(hp.display.textContent, "15,549180");
 
   hp.type(1);
   hp.press("g", "2", "XSWAP", "RDOWN", "XSWAP", "-");
-  assert.equal(hp.display.textContent, "0.001126");
+  assert.equal(hp.display.textContent, "0,001126");
 });
 
 test("reproduz as duas previsões do módulo oficial de correlação", () => {
@@ -182,11 +182,11 @@ test("reproduz as duas previsões do módulo oficial de correlação", () => {
 
   hp.type(12500);
   hp.press("g", "2");
-  assert.equal(hp.display.textContent, "3140.38");
+  assert.equal(hp.display.textContent, "3.140,38");
 
   hp.type(3520);
   hp.press("g", "1");
-  assert.equal(hp.display.textContent, "14140.22");
+  assert.equal(hp.display.textContent, "14.140,22");
 });
 
 test("calcula a média ponderada com item em y e peso em x", () => {
@@ -199,7 +199,7 @@ test("calcula a média ponderada com item em y e peso em x", () => {
   hp.enterPair(1.18, 17);
   hp.press("g", "6");
 
-  assert.equal(hp.display.textContent, "1.19");
+  assert.equal(hp.display.textContent, "1,19");
 });
 
 test("mantém resultados grandes em formato decimal", () => {
@@ -210,8 +210,18 @@ test("mantém resultados grandes em formato decimal", () => {
   hp.type(100);
   hp.press("*");
 
-  assert.equal(hp.display.textContent, "1000000000000.00");
+  assert.equal(hp.display.textContent, "1.000.000.000.000,00");
   assert.doesNotMatch(hp.display.textContent, /e[+-]?\d+/i);
+});
+
+test("exibe milhares com ponto e decimais com vírgula durante a entrada", () => {
+  const hp = createCalculator();
+
+  hp.type("1234567.89");
+  assert.equal(hp.display.textContent, "1.234.567,89");
+
+  hp.press("PV", "RCL", "PV");
+  assert.equal(hp.display.textContent, "1.234.567,89");
 });
 
 test("RCL exibe resíduos financeiros pequenos no formato FIX, sem expoente", () => {
@@ -220,7 +230,7 @@ test("RCL exibe resíduos financeiros pequenos no formato FIX, sem expoente", ()
   hp.type("0.00000000000131");
   hp.press("PV", "RCL", "PV");
 
-  assert.equal(hp.display.textContent, "0.00");
+  assert.equal(hp.display.textContent, "0,00");
   assert.doesNotMatch(hp.display.textContent, /e[+-]?\d+/i);
 });
 
@@ -236,21 +246,21 @@ test("AMORT no modo BEGIN trata a primeira prestação como imediata", () => {
 
   hp.type(1);
   hp.press("f", "n");
-  assert.equal(hp.display.textContent, "0.00");
+  assert.equal(hp.display.textContent, "0,00");
   hp.press("XSWAP");
-  assert.equal(hp.display.textContent, "-100.00");
+  assert.equal(hp.display.textContent, "-100,00");
   hp.press("RCL", "PV");
-  assert.equal(hp.display.textContent, "90.91");
+  assert.equal(hp.display.textContent, "90,91");
 
   hp.type(1);
   hp.press("f", "n");
-  assert.equal(hp.display.textContent, "-9.09");
+  assert.equal(hp.display.textContent, "-9,09");
   hp.press("XSWAP");
-  assert.equal(hp.display.textContent, "-90.91");
+  assert.equal(hp.display.textContent, "-90,91");
   hp.press("RCL", "PV");
-  assert.equal(hp.display.textContent, "0.00");
+  assert.equal(hp.display.textContent, "0,00");
   hp.press("RCL", "n");
-  assert.equal(hp.display.textContent, "2.00");
+  assert.equal(hp.display.textContent, "2,00");
 });
 
 test("AMORT no modo END continua cobrando juros antes da primeira prestação", () => {
@@ -265,11 +275,11 @@ test("AMORT no modo END continua cobrando juros antes da primeira prestação", 
 
   hp.type(1);
   hp.press("f", "n");
-  assert.equal(hp.display.textContent, "-17.36");
+  assert.equal(hp.display.textContent, "-17,36");
   hp.press("XSWAP");
-  assert.equal(hp.display.textContent, "-82.64");
+  assert.equal(hp.display.textContent, "-82,64");
   hp.press("RCL", "PV");
-  assert.equal(hp.display.textContent, "90.91");
+  assert.equal(hp.display.textContent, "90,91");
 });
 
 test("CLEAR FIN preserva o valor exibido para a próxima entrada financeira", () => {
@@ -277,12 +287,12 @@ test("CLEAR FIN preserva o valor exibido para a próxima entrada financeira", ()
 
   hp.type(1250);
   hp.press("f", "XSWAP");
-  assert.equal(hp.display.textContent, "1250.00");
+  assert.equal(hp.display.textContent, "1.250,00");
 
   hp.press("PV");
   assert.match(hp.status.textContent, /PV armazenado/);
   hp.press("RCL", "PV");
-  assert.equal(hp.display.textContent, "1250.00");
+  assert.equal(hp.display.textContent, "1.250,00");
 });
 
 test("oferece tela inteira com fallback e controle para sair", async () => {
@@ -312,7 +322,7 @@ test("eleva a pilha automaticamente ao iniciar uma nova entrada", () => {
   hp.type(3);
   hp.press("*");
 
-  assert.equal(hp.display.textContent, "39.00");
+  assert.equal(hp.display.textContent, "39,00");
 });
 
 test("grava, exibe e executa o programa básico do manual", () => {
@@ -329,7 +339,7 @@ test("grava, exibe e executa o programa básico do manual", () => {
   hp.type(200);
   hp.press("RS");
 
-  assert.equal(hp.display.textContent, "155.00");
+  assert.equal(hp.display.textContent, "155,00");
 });
 
 test("agrupa instruções de registro em uma única linha de programa", () => {
@@ -354,7 +364,7 @@ test("GTO com ponto navega e a próxima entrada substitui a linha seguinte", () 
   hp.press("f", "RS");
   hp.type(200);
   hp.press("RS");
-  assert.equal(hp.display.textContent, "135.00");
+  assert.equal(hp.display.textContent, "135,00");
 });
 
 test("testes condicionais pulam a próxima linha e GTO executa laços", () => {
@@ -367,7 +377,7 @@ test("testes condicionais pulam a próxima linha e GTO executa laços", () => {
   hp.type(3);
   hp.press("RS");
 
-  assert.equal(hp.display.textContent, "0.00");
+  assert.equal(hp.display.textContent, "0,00");
   assert.match(hp.status.textContent, /R\/S/);
 });
 
@@ -380,10 +390,10 @@ test("R/S retoma na linha posterior à instrução de parada", () => {
 
   hp.type(4);
   hp.press("RS");
-  assert.equal(hp.display.textContent, "6.00");
+  assert.equal(hp.display.textContent, "6,00");
 
   hp.press("RS");
-  assert.equal(hp.display.textContent, "18.00");
+  assert.equal(hp.display.textContent, "18,00");
 });
 
 test("g MEM usa o formato P-nn r-nn do manual", () => {
@@ -402,11 +412,11 @@ test("PSE exibe o resultado intermediário e depois retoma o programa", async ()
   hp.type(4);
   hp.press("RS");
 
-  assert.equal(hp.display.textContent, "6.00");
+  assert.equal(hp.display.textContent, "6,00");
   assert.match(hp.status.textContent, /PSE/);
 
   await new Promise((resolve) => setTimeout(resolve, 10));
-  assert.equal(hp.display.textContent, "18.00");
+  assert.equal(hp.display.textContent, "18,00");
 });
 
 test("grava CLEAR FIN e CLEAR Σ, mas não grava CLEAR REG", () => {
@@ -432,7 +442,7 @@ test("grava e executa RCL g i em uma única linha", () => {
   hp.press("f", "RS");
   hp.type(1.5);
   hp.press("RS");
-  assert.equal(hp.display.textContent, "18.00");
+  assert.equal(hp.display.textContent, "18,00");
 });
 
 test("f CLEAR PRGM em modo RUN reposiciona sem apagar o programa", () => {
@@ -444,7 +454,7 @@ test("f CLEAR PRGM em modo RUN reposiciona sem apagar o programa", () => {
 
   hp.type(4);
   hp.press("RS");
-  assert.equal(hp.display.textContent, "6.00");
+  assert.equal(hp.display.textContent, "6,00");
 });
 
 test("BST na linha 00 volta para a última linha de memória alocada", () => {
@@ -530,5 +540,5 @@ test("executa o programa de leasing do manual e obtém 17,33% ao ano", () => {
   hp.type(25000);
   hp.press("STO", "3", "RS");
 
-  assert.equal(hp.display.textContent, "17.33");
+  assert.equal(hp.display.textContent, "17,33");
 });
