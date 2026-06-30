@@ -150,4 +150,24 @@ table{width:100%;border-collapse:collapse;min-width:610px;background:#fff;font-s
   .hp-enter .key-main{font-size:.58rem}
   .hp-help{font-size:.62rem;line-height:1.45}
 }
+@media(orientation:landscape) and (max-height:600px){
+  .hp-calculator-scroll:fullscreen,.hp-calculator-scroll.hp-fullscreen-fallback{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.25rem;overflow:hidden}
+  .hp-calculator-scroll:fullscreen .hp-calculator-actions,.hp-calculator-scroll.hp-fullscreen-fallback .hp-calculator-actions{flex:0 0 auto;width:min(720px,100%);margin:0 auto .2rem}
+  .hp-calculator-scroll:fullscreen .hp-fullscreen-button,.hp-calculator-scroll.hp-fullscreen-fallback .hp-fullscreen-button{padding:.25rem .5rem;font-size:.65rem}
+  .hp-calculator-scroll:fullscreen .hp-shell,.hp-calculator-scroll.hp-fullscreen-fallback .hp-shell{flex:0 1 auto;width:min(720px,100%);min-width:0;border-width:3px;border-radius:6px}
+  .hp-calculator-scroll:fullscreen .hp-top-panel,.hp-calculator-scroll.hp-fullscreen-fallback .hp-top-panel{padding:.35rem .55rem .3rem;border-bottom-width:4px}
+  .hp-calculator-scroll:fullscreen .hp-brand,.hp-calculator-scroll.hp-fullscreen-fallback .hp-brand{display:none}
+  .hp-calculator-scroll:fullscreen .hp-display-frame,.hp-calculator-scroll.hp-fullscreen-fallback .hp-display-frame{width:78%;padding:.2rem}
+  .hp-calculator-scroll:fullscreen .hp-display,.hp-calculator-scroll.hp-fullscreen-fallback .hp-display{min-height:49px;padding:.2rem .45rem .15rem}
+  .hp-calculator-scroll:fullscreen #hpDisplayValue,.hp-calculator-scroll.hp-fullscreen-fallback #hpDisplayValue{font-size:1.6rem}
+  .hp-calculator-scroll:fullscreen .hp-annunciators,.hp-calculator-scroll.hp-fullscreen-fallback .hp-annunciators{min-height:.7rem;font-size:.46rem}
+  .hp-calculator-scroll:fullscreen .hp-status,.hp-calculator-scroll.hp-fullscreen-fallback .hp-status{min-height:.6rem;margin-top:.05rem;font-size:.43rem}
+  .hp-calculator-scroll:fullscreen .hp-registers,.hp-calculator-scroll.hp-fullscreen-fallback .hp-registers{width:100%;gap:.2rem;margin-top:.25rem;font-size:.45rem}
+  .hp-calculator-scroll:fullscreen .hp-registers div,.hp-calculator-scroll.hp-fullscreen-fallback .hp-registers div{padding:.08rem .12rem}
+  .hp-calculator-scroll:fullscreen .hp-keyboard,.hp-calculator-scroll.hp-fullscreen-fallback .hp-keyboard{padding:.4rem .45rem .35rem}
+  .hp-calculator-scroll:fullscreen .hp-keys,.hp-calculator-scroll.hp-fullscreen-fallback .hp-keys{gap:.3rem .25rem}
+  .hp-calculator-scroll:fullscreen .hp-key,.hp-calculator-scroll.hp-fullscreen-fallback .hp-key{min-height:42px;padding:.62rem .08rem .52rem}
+  .hp-calculator-scroll:fullscreen .hp-enter,.hp-calculator-scroll.hp-fullscreen-fallback .hp-enter{min-height:89px}
+  .hp-calculator-scroll:fullscreen .hp-help,.hp-calculator-scroll.hp-fullscreen-fallback .hp-help{display:none}
+}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
