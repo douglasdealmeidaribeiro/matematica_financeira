@@ -455,18 +455,20 @@
     const periods = Math.max(1, Math.round(commit()));
     if ([financial.i, financial.PV, financial.PMT].some((value) => value === null)) return error("AMORT requer i, PV e PMT");
     const rate = financial.i / 100;
+    const amortizedPayments = Math.max(0, financial.n ?? 0);
     let balance = Math.abs(financial.PV), totalInterest = 0, totalPrincipal = 0;
     for (let period = 0; period < periods && balance > 1e-10; period += 1) {
-      const interest = balance * rate;
+      const isImmediateFirstPayment = beginMode && amortizedPayments + period === 0;
+      const interest = isImmediateFirstPayment ? 0 : balance * rate;
       const principal = Math.min(balance, Math.max(0, Math.abs(financial.PMT) - interest));
       totalInterest += interest; totalPrincipal += principal; balance -= principal;
     }
     const direction = financial.PMT < 0 ? -1 : 1;
-    const interestResult = totalInterest * direction;
+    const interestResult = totalInterest === 0 ? 0 : totalInterest * direction;
     const principalResult = totalPrincipal * direction;
     stack = [interestResult, principalResult, periods, stack[1]];
     entry = String(interestResult);
-    financial.n = (financial.n ?? 0) + periods;
+    financial.n = amortizedPayments + periods;
     financial.PV = (financial.PV ?? 0) + principalResult;
     refreshRegisters();
     lastAction = `AMORT: juros; pressione x↔y para principal (${formatDisplay(principalResult)})`;

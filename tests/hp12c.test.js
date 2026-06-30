@@ -204,6 +204,54 @@ test("RCL exibe resíduos financeiros pequenos no formato FIX, sem expoente", ()
   assert.doesNotMatch(hp.display.textContent, /e[+-]?\d+/i);
 });
 
+test("AMORT no modo BEGIN trata a primeira prestação como imediata", () => {
+  const hp = createCalculator();
+
+  hp.type(10);
+  hp.press("i");
+  hp.type("190.9090909091");
+  hp.press("PV");
+  hp.type(100);
+  hp.press("CHS", "PMT", "g", "7");
+
+  hp.type(1);
+  hp.press("f", "n");
+  assert.equal(hp.display.textContent, "0.00");
+  hp.press("XSWAP");
+  assert.equal(hp.display.textContent, "-100.00");
+  hp.press("RCL", "PV");
+  assert.equal(hp.display.textContent, "90.91");
+
+  hp.type(1);
+  hp.press("f", "n");
+  assert.equal(hp.display.textContent, "-9.09");
+  hp.press("XSWAP");
+  assert.equal(hp.display.textContent, "-90.91");
+  hp.press("RCL", "PV");
+  assert.equal(hp.display.textContent, "0.00");
+  hp.press("RCL", "n");
+  assert.equal(hp.display.textContent, "2.00");
+});
+
+test("AMORT no modo END continua cobrando juros antes da primeira prestação", () => {
+  const hp = createCalculator();
+
+  hp.type(10);
+  hp.press("i");
+  hp.type("173.5537190083");
+  hp.press("PV");
+  hp.type(100);
+  hp.press("CHS", "PMT");
+
+  hp.type(1);
+  hp.press("f", "n");
+  assert.equal(hp.display.textContent, "-17.36");
+  hp.press("XSWAP");
+  assert.equal(hp.display.textContent, "-82.64");
+  hp.press("RCL", "PV");
+  assert.equal(hp.display.textContent, "90.91");
+});
+
 test("eleva a pilha automaticamente ao iniciar uma nova entrada", () => {
   const hp = createCalculator();
 
